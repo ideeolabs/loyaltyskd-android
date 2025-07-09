@@ -125,11 +125,10 @@ El SDK maneja automáticamente las respuestas de la API:
 ## 🛠️ Métodos Disponibles
 
 ### LoyaltySDK
-- `configure(context, config)` - Configura el SDK
-- `isInitialized()` - Verifica si está inicializado
-- `getCurrentConfig()` - Obtiene la configuración actual
+- `configure(context, config)` - Inicializa el SDK
+- `isInitialized()` - Verifica si está inicializado 
 - `getConfigureResponse()` - Obtiene la respuesta de configuración
-- `ShowViewController(tokenSAML, modifier)` - Muestra el componente
+- `ShowViewController(tokenSAML, modifier)` - Muestra el componente, se tiene que pasar el tokenSAML
 
 ## 📞 Soporte
 
