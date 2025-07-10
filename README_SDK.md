@@ -1,12 +1,45 @@
-// Ejemplo de implementación del Loyalty SDK
-  
+# Loyalty SDK - Guía de Implementación
+
+## 📦 Instalación
+
+### Opción 1: AAR Local
+1. Descarga el archivo `loyalty-sdk-release.aar`
+2. Colócalo en la carpeta `app/libs/` de tu proyecto
+3. Agrega la dependencia en tu `app/build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation(files("libs/loyalty-sdk-release.aar"))
+    
+    // Dependencias requeridas
+    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
+    implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+}
+```
+
+### Opción 2: Maven Repository (Próximamente)
+```kotlin
+dependencies {
+    implementation("com.ideeolabs:loyalty-sdk:1.0.0")
+}
+```
+
+## 🚀 Implementación
+
+### Opción 1: Con Jetpack Compose
+
+#### 1. Configurar el SDK
+```kotlin
 import com.ideeolabs.loyalty.sdk.LoyaltySDK
 import com.ideeolabs.loyalty.sdk.LoyaltyConfig
 import kotlinx.coroutines.launch
-
-// ========================================
-// EJEMPLO 1: IMPLEMENTACIÓN CON JETPACK COMPOSE
-// ========================================
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +55,8 @@ class MainActivity : ComponentActivity() {
                 )
                 
                 if (success) {
-                    println("SDK configurado exitosamente")
+                    // SDK configurado exitosamente
+                    println("SDK listo para usar")
                 }
             } catch (e: Exception) {
                 println("Error: ${e.message}")
@@ -30,6 +64,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+```
+
+#### 2. Mostrar el Componente
+```kotlin
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 @Composable
 fun MyLoyaltyView() {
@@ -38,61 +78,40 @@ fun MyLoyaltyView() {
         modifier = Modifier.fillMaxSize()
     )
 }
+```
 
-// ========================================
-// EJEMPLO 2: IMPLEMENTACIÓN CON VIEWS TRADICIONALES
-// ========================================
+### Opción 2: Con Views Tradicionales
 
-package com.ideeolabs.loyaltyviews
-
-import android.os.Bundle 
-import androidx.appcompat.app.AppCompatActivity 
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.Button
-import android.widget.FrameLayout
-import androidx.lifecycle.lifecycleScope
+#### 1. Configurar el SDK
+```kotlin
 import com.ideeolabs.loyalty.sdk.LoyaltySDK
 import com.ideeolabs.loyalty.sdk.LoyaltyConfig
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var loyaltyContainer: FrameLayout
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        loyaltyContainer = findViewById(R.id.loyalty_container)
-
-        // Configurar el SDK
-        configureLoyaltySDK()
-
-        // Configurar botones del footer
-        setupFooterButtons()
-    }
-
-    private fun configureLoyaltySDK() {
+        
         lifecycleScope.launch {
             try {
                 val success = LoyaltySDK.configure(
                     context = this@MainActivity,
                     config = LoyaltyConfig(
-                        appKey = "test_FJiceIdJtRJbyiwkDa+vxG+xpfVwoLg8q4EhfCDZPF4="
+                        appKey = "tu_app_key_aqui"
                     )
                 )
-
+                
                 if (success) {
-                    println("SDK configurado exitosamente")
-                    setupLoyaltyWebView()
+                    setupLoyaltyView()
                 }
             } catch (e: Exception) {
-                println("Error configurando SDK: ${e.message}")
+                println("Error: ${e.message}")
             }
         }
     }
-
-    private fun setupLoyaltyWebView() {
+    
+    private fun setupLoyaltyView() {
         val webView = WebView(this).apply {
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -110,21 +129,21 @@ class MainActivity : AppCompatActivity() {
                 displayZoomControls = false
                 mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             }
-
-            // Agregar interfaz JavaScript para comunicación
+            
+            // Agregar interfaz JavaScript
             addJavascriptInterface(object {
                 @android.webkit.JavascriptInterface
                 fun sendMessageToAndroid(message: String) {
                     println("Mensaje desde JavaScript: $message")
                 }
-
+                
                 @android.webkit.JavascriptInterface
                 fun getAndroidData(): String {
                     return "{\"status\": \"success\", \"data\": \"from Android\"}"
                 }
             }, "AndroidInterface")
         }
-
+        
         // Cargar la URL del SDK
         val apiResponse = LoyaltySDK.getConfigureResponse()
         val urlToLoad = if (apiResponse?.error == 0) {
@@ -132,38 +151,18 @@ class MainActivity : AppCompatActivity() {
         } else {
             "https://banorte.com"
         }
-
-        webView.loadUrl(urlToLoad.toString())
-
-        // Agregar el WebView al contenedor
-        loyaltyContainer.addView(webView)
+        
+        webView.loadUrl(urlToLoad)
+        
+        // Agregar el WebView al layout
+        val container = findViewById<FrameLayout>(R.id.loyalty_container)
+        container.addView(webView)
     }
-
-    private fun setupFooterButtons() {
-        findViewById<Button>(R.id.btnHome).setOnClickListener {
-            // Navegar a Home
-        }
-
-        findViewById<Button>(R.id.btnPagos).setOnClickListener {
-            // Navegar a Pagos
-        }
-
-        findViewById<Button>(R.id.btnFinanzas).setOnClickListener {
-            // Navegar a Finanzas
-        }
-
-        findViewById<Button>(R.id.btnLealtad).setOnClickListener {
-            // Navegar a Lealtad
-        }
-
-        findViewById<Button>(R.id.btnDescubre).setOnClickListener {
-            // Navegar a Descubre
-        }
-    }
-
 }
+```
 
-// Layout XML correspondiente (activity_main.xml):
+#### 2. Layout XML
+```xml
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -186,7 +185,6 @@ class MainActivity : AppCompatActivity() {
             android:textStyle="bold" />
 
         <ImageButton
-            android:id="@+id/btnNotifications"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_notifications"
@@ -194,7 +192,6 @@ class MainActivity : AppCompatActivity() {
             android:contentDescription="Notifications" />
 
         <ImageButton
-            android:id="@+id/btnInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_info"
@@ -218,7 +215,6 @@ class MainActivity : AppCompatActivity() {
         android:padding="8dp">
 
         <Button
-            android:id="@+id/btnHome"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -227,7 +223,6 @@ class MainActivity : AppCompatActivity() {
             android:textColor="@android:color/black" />
 
         <Button
-            android:id="@+id/btnPagos"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -236,7 +231,6 @@ class MainActivity : AppCompatActivity() {
             android:textColor="@android:color/black" />
 
         <Button
-            android:id="@+id/btnFinanzas"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -245,7 +239,6 @@ class MainActivity : AppCompatActivity() {
             android:textColor="@android:color/black" />
 
         <Button
-            android:id="@+id/btnLealtad"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -254,7 +247,6 @@ class MainActivity : AppCompatActivity() {
             android:textColor="@android:color/black" />
 
         <Button
-            android:id="@+id/btnDescubre"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -265,3 +257,67 @@ class MainActivity : AppCompatActivity() {
     </LinearLayout>
 
 </LinearLayout>
+```
+
+## 📋 Permisos Requeridos
+
+Agrega estos permisos en tu `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+```
+
+## 🔧 Configuración
+
+### LoyaltyConfig
+```kotlin
+data class LoyaltyConfig(
+    val appKey: String,     // Tu clave de API
+    val debug: Boolean?     // Modo debug (opcional)
+)
+```
+
+## 📡 API Response
+
+El SDK maneja automáticamente las respuestas de la API:
+
+### Respuesta Exitosa
+```json
+{
+    "error": 0,
+    "status": "success",
+    "message": "No error. Registrado en ambiente de prueba",
+    "user_code": "2cadbycyd7",
+    "environment": "pruebas",
+    "web_view_url": "https://soto.com/home"
+}
+```
+
+### Respuesta con Error
+```json
+{
+    "error": 1,
+    "status": "error",
+    "message": "AppKey inválido o no autorizado"
+}
+```
+
+## 🛠️ Métodos Disponibles
+
+### LoyaltySDK
+- `configure(context, config)` - Configura el SDK
+- `isInitialized()` - Verifica si está inicializado
+- `getCurrentConfig()` - Obtiene la configuración actual
+- `getConfigureResponse()` - Obtiene la respuesta de configuración
+- `ShowViewController(tokenSAML, modifier)` - Muestra el componente (Compose)
+
+## 📞 Soporte
+
+Para soporte técnico o preguntas, contacta a:
+- Email: soporte@ideeolabs.com
+- Documentación: https://docs.ideeolabs.com
+
+## 📄 Licencia
+
+Este SDK está bajo licencia propietaria de Ideeolabs.
