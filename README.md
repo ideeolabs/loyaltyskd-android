@@ -106,10 +106,7 @@ El SDK maneja automáticamente las respuestas de la API:
 {
     "error": 0,
     "status": "success",
-    "message": "No error. Registrado en ambiente de prueba",
-    "user_code": "2cadbycyd7",
-    "environment": "pruebas",
-    "web_view_url": "https://soto.com/home"
+    "message": "No error. Registrado en ambiente de prueba"
 }
 ```
 
