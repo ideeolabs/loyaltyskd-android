@@ -290,7 +290,7 @@ El SDK maneja automáticamente las respuestas de la API:
     "message": "No error. Registrado en ambiente de prueba",
     "user_code": "2cadbycyd7",
     "environment": "pruebas",
-    "web_view_url": "https://soto.com/home"
+    "webViewUrl": "https://urlToShow.com"
 }
 ```
 
@@ -315,8 +315,7 @@ El SDK maneja automáticamente las respuestas de la API:
 ## 📞 Soporte
 
 Para soporte técnico o preguntas, contacta a:
-- Email: soporte@ideeolabs.com
-- Documentación: https://docs.ideeolabs.com
+- Email: jose.soto@ideeo.mx 
 
 ## 📄 Licencia
 
