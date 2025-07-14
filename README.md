@@ -1,10 +1,10 @@
-# Loyalty SDK - Guía de Implementación pa Android
+# Loyalty SDK - Guía de Implementación para Android
 
 ## 📌 Visión General
 
-**LoyaltySDK** es un SDK modular en formato `XCFramework`. Este repositorio incluye:
+**LoyaltySDK** es un SDK modular en formato `.aar`. Este repositorio incluye:
 
-- ✅ `.aar` precompilado (`LoyaltySDK.xcframework`)
+- ✅ `.aar` precompilado
 - ✅ Proyecto de ejemplo (`Demo_App/`)
 - ✅ Documentación completa de integración
 
