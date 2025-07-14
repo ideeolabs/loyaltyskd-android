@@ -1,261 +1,88 @@
-# Loyalty SDK - Guía de Implementación
+# Loyalty SDK - Guía de Implementación pa Android
+
+## 📌 Visión General
+
+**LoyaltySDK** es un SDK modular en formato `XCFramework`. Este repositorio incluye:
+
+- ✅ `.aar` precompilado (`LoyaltySDK.xcframework`)
+- ✅ Proyecto de ejemplo (`Demo_App/`)
+- ✅ Documentación completa de integración
+
+## 🚀 Requisitos Técnicos
+
+- Kotlin: 2.1.0
+- API LVL: 35
+- Gradle: 8.7
+- Android Gradle Plugin: 8.6.1
+- JDK: 17
+
 
 ## 📦 Instalación
 
-### Opción 1: AAR Local
+### Opción 1: .aar Local
 1. Descarga el archivo `loyalty-sdk-release.aar`
-2. Colócalo en la carpeta `app/libs/` de tu proyecto
+2. Colócalo en la carpeta `app/libs/` de tu proyecto. Si no esta creada , mse debe de crear en `app` en la vista `Project`
 3. Agrega la dependencia en tu `app/build.gradle.kts`:
 
 ```kotlin
 dependencies {
     implementation(files("libs/loyalty-sdk-release.aar"))
-    
-    // Dependencias requeridas
-    implementation("androidx.core:core-ktx:1.10.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.activity:activity-compose:1.8.0")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material3:material3")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.google.code.gson:gson:2.10.1")
-}
-```
-
-### Opción 2: Maven Repository (Próximamente)
-```kotlin
-dependencies {
-    implementation("com.ideeolabs:loyalty-sdk:1.0.0")
 }
 ```
 
 ## 🚀 Implementación
 
-### Opción 1: Con Jetpack Compose
+### Views Tradicionales(XML)
 
-#### 1. Configurar el SDK
+#### 1. Importar el SDK
 ```kotlin
-import com.ideeolabs.loyalty.sdk.LoyaltySDK
-import com.ideeolabs.loyalty.sdk.LoyaltyConfig
-import kotlinx.coroutines.launch
+import com.convergence.loyaltysdk.LoyaltySDK
+```
 
-class MainActivity : ComponentActivity() {
+#### 2. Configurar el SDK(por ejemplo en `onCreate` )
+```kotlin
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        lifecycleScope.launch {
-            try {
-                val success = LoyaltySDK.configure(
-                    context = this@MainActivity,
-                    config = LoyaltyConfig(
-                        appKey = "tu_app_key_aqui"
-                    )
-                )
-                
-                if (success) {
-                    // SDK configurado exitosamente
-                    println("SDK listo para usar")
-                }
-            } catch (e: Exception) {
-                println("Error: ${e.message}")
-            }
+
+        // Configurar LoyaltySDK
+        LoyaltySDK.configure(
+            this,
+            "test_FJiceIdJtRJbyiwkDa+vxG+xpfVwoLg8q4EhfCDZPF4="
+        ) { success, error ->
+            sdkConfigured = success
         }
     }
-}
 ```
 
-#### 2. Mostrar el Componente
+#### 3. Llamar al Método `loyaltyView(context: Context, token: String)` )
 ```kotlin
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-
-@Composable
-fun MyLoyaltyView() {
-    LoyaltySDK.ShowViewController(
-        tokenSAML = "tu_token_saml",
-        modifier = Modifier.fillMaxSize()
-    )
-}
+    val loyaltyView = LoyaltySDK.loyaltyView().loyaltyView(
+        this,
+        token = "hAh#8#Fvcyta86ac="
+        ) {
+            // Callback cuando la vista carga
+            Toast.makeText(this, "View cargado", Toast.LENGTH_SHORT).show()
+        }
 ```
 
-### Opción 2: Con Views Tradicionales
-
-#### 1. Configurar el SDK
-```kotlin
-import com.ideeolabs.loyalty.sdk.LoyaltySDK
-import com.ideeolabs.loyalty.sdk.LoyaltyConfig
-import kotlinx.coroutines.launch
-
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        
-        lifecycleScope.launch {
-            try {
-                val success = LoyaltySDK.configure(
-                    context = this@MainActivity,
-                    config = LoyaltyConfig(
-                        appKey = "tu_app_key_aqui"
-                    )
-                )
-                
-                if (success) {
-                    setupLoyaltyView()
-                }
-            } catch (e: Exception) {
-                println("Error: ${e.message}")
-            }
-        }
-    }
-    
-    private fun setupLoyaltyView() {
-        val webView = WebView(this).apply {
-            webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    println("Loyalty SDK cargado")
-                }
-            }
-            settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                loadWithOverviewMode = true
-                useWideViewPort = true
-                setSupportZoom(true)
-                builtInZoomControls = true
-                displayZoomControls = false
-                mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-            }
-            
-            // Agregar interfaz JavaScript
-            addJavascriptInterface(object {
-                @android.webkit.JavascriptInterface
-                fun sendMessageToAndroid(message: String) {
-                    println("Mensaje desde JavaScript: $message")
-                }
-                
-                @android.webkit.JavascriptInterface
-                fun getAndroidData(): String {
-                    return "{\"status\": \"success\", \"data\": \"from Android\"}"
-                }
-            }, "AndroidInterface")
-        }
-        
-        // Cargar la URL del SDK
-        val apiResponse = LoyaltySDK.getConfigureResponse()
-        val urlToLoad = if (apiResponse?.error == 0) {
-            apiResponse.webViewUrl
-        } else {
-            "https://banorte.com"
-        }
-        
-        webView.loadUrl(urlToLoad)
-        
-        // Agregar el WebView al layout
-        val container = findViewById<FrameLayout>(R.id.loyalty_container)
-        container.addView(webView)
-    }
-}
-```
-
-#### 2. Layout XML
+#### 4. Layout XML
+Crear el contenedor (FrameLayout/ViewGroup) donde se carga LoyaltyView
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <!-- Header -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFCDD2"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Loyalty Program"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_notifications"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Notifications" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_info"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Info" />
-
-    </LinearLayout>
-
-    <!-- Contenedor del WebView -->
+    <!-- Contenedor para LoyaltyView -->
     <FrameLayout
-        android:id="@+id/loyalty_container"
+        android:id="@+id/contentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
 
-    <!-- Footer -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFCDD2"
-        android:padding="8dp">
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Home"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@android:color/black" />
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Pagos"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@android:color/black" />
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Finanzas"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@android:color/black" />
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Lealtad"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@android:color/black" />
-
-        <Button
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Descubre"
-            android:background="?attr/selectableItemBackground"
-            android:textColor="@android:color/black" />
-
-    </LinearLayout>
-
+    <!-- Otros componentes -->
+    ...
 </LinearLayout>
 ```
 
@@ -268,49 +95,22 @@ Agrega estos permisos en tu `AndroidManifest.xml`:
 <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 ```
 
-## 🔧 Configuración
+## 🔍 Ejemplo de Uso
+La aplicación de referencia ubicada en `Demo_App` muestra cómo:
 
-### LoyaltyConfig
-```kotlin
-data class LoyaltyConfig(
-    val appKey: String,     // Tu clave de API
-    val debug: Boolean?     // Modo debug (opcional)
-)
-```
+- Importar el SDK
 
-## 📡 API Response
+- Configurar e implementar el SDK
 
-El SDK maneja automáticamente las respuestas de la API:
+- Usar callback para detectar eventos
 
-### Respuesta Exitosa
-```json
-{
-    "error": 0,
-    "status": "success",
-    "message": "No error. Registrado en ambiente de prueba",
-    "user_code": "2cadbycyd7",
-    "environment": "pruebas",
-    "webViewUrl": "https://urlToShow.com"
-}
-```
+## ▶️ Ejecutar la demo
 
-### Respuesta con Error
-```json
-{
-    "error": 1,
-    "status": "error",
-    "message": "AppKey inválido o no autorizado"
-}
-```
+- Abrir `Demo_App` en Android Studio
 
-## 🛠️ Métodos Disponibles
+- Seleccionar un simulador o dispositivo físico
 
-### LoyaltySDK
-- `configure(context, config)` - Configura el SDK
-- `isInitialized()` - Verifica si está inicializado
-- `getCurrentConfig()` - Obtiene la configuración actual
-- `getConfigureResponse()` - Obtiene la respuesta de configuración
-- `ShowViewController(tokenSAML, modifier)` - Muestra el componente (Compose)
+- Ejecutar y navegar entre las pestañas
 
 ## 📞 Soporte
 
